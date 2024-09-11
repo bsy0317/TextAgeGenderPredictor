@@ -1,6 +1,6 @@
 import os
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 from models.gender_age_model import GenderAgeModel
 from preprocessing.data_loader import DialogueDataset
 from transformers import AutoTokenizer
@@ -8,6 +8,7 @@ from training.train import train_model
 from training.validation import validate_model
 from utils.collate import custom_collate_fn
 from utils.checkpoint import save_checkpoint, load_checkpoint
+import numpy as np
 
 def main():
     device_name = "cpu"
@@ -24,11 +25,42 @@ def main():
     # 데이터셋 로드 및 DataLoader 설정
     print("="*10+"Loading Train Dataset"+"="*10)
     train_dataset = DialogueDataset(train_data_path)
-    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, collate_fn=custom_collate_fn)
+    
+    # 불균형 데이터 처리
+    labels = [label for _, label in train_dataset]
+    gender_labels, age_labels = zip(*labels)
+    
+    gender_class_weights = 1. / np.bincount(gender_labels)
+    age_class_weights = 1. / np.bincount(age_labels)
+
+    # 각 샘플별 가중치 계산
+    sample_weights = []
+    for g_label, a_label in zip(gender_labels, age_labels):
+        gender_weight = gender_class_weights[g_label]
+        age_weight = age_class_weights[a_label]
+        sample_weights.append(gender_weight + age_weight)
+
+    # 데이터 로더
+    sampler = WeightedRandomSampler(sample_weights, len(sample_weights))
+    train_loader = DataLoader(
+        train_dataset, 
+        batch_size=128, 
+        sampler=sampler, 
+        collate_fn=custom_collate_fn,
+        num_workers=8,
+        pin_memory=True
+    )
 
     print("="*10+"Loading Validation Dataset"+"="*10)
     validation_dataset = DialogueDataset(validation_data_path)
-    validation_loader = DataLoader(validation_dataset, batch_size=128, shuffle=False, collate_fn=custom_collate_fn)
+    validation_loader = DataLoader(
+        validation_dataset, 
+        batch_size=128, 
+        shuffle=False, 
+        num_workers=8,
+        pin_memory=True,
+        collate_fn=custom_collate_fn
+    )
 
     # KcELECTRA 모델 및 토크나이저 로드
     model_name = "beomi/KcELECTRA-base"
@@ -38,14 +70,13 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
     criterion = torch.nn.CrossEntropyLoss()
     
-    # 가중치 불러오기 시도
+    # 가중치 불러오기
     start_epoch = 0
     checkpoint_path = "checkpoint.pth"
     
     # 체크포인트가 존재하는 경우 불러오기
     if os.path.exists(checkpoint_path):
         start_epoch = load_checkpoint(model, optimizer, checkpoint_path)
-
 
     # 모델 학습
     train_model(model, train_loader, tokenizer, criterion, optimizer, device, epochs=5, start_epoch=start_epoch)

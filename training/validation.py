@@ -25,3 +25,4 @@ def validate_model(model, validation_loader, tokenizer, criterion, device):
             progress_bar.set_postfix(loss=total_loss / len(validation_loader))
 
     print(f'Validation Loss: {total_loss / len(validation_loader)}')
+

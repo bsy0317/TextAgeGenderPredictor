@@ -113,3 +113,9 @@ __MACOSX/
 
 # model
 *.pth
+
+# zip
+*.zip
+
+# tflog
+*tfevents*
