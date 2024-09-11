@@ -1,23 +1,16 @@
 import json
 import os
-import torch
-from torch.utils.data import Dataset, random_split
+from torch.utils.data import Dataset
+from collections import defaultdict
 from tqdm import tqdm
 
 class DialogueDataset(Dataset):
-    def __init__(self, data_dir, split_ratio=0.5):
+    def __init__(self, data_dir):
         self.data = []  # 발화(utterance) 목록
         self.labels = []  # 성별, 나이 레이블 목록
+        self.label_counts = defaultdict(int)
         self._load_data(data_dir)
-
-        # 전체 데이터셋 크기
-        dataset_size = len(self.data)
-        
-        # nn% 데이터를 학습용으로 샘플링
-        train_size = int(split_ratio * dataset_size)
-        val_size = dataset_size - train_size
-        
-        self.train_data, self.val_data = random_split(list(zip(self.data, self.labels)), [train_size, val_size])
+        self._print_label_counts()
 
     def _load_data(self, data_dir):
         for file_name in tqdm(os.listdir(data_dir), desc="Loading Data"):
@@ -30,7 +23,7 @@ class DialogueDataset(Dataset):
                         
                         for utterance in dialogue['body']:
                             # 발화(utterance) 텍스트
-                            self.data.append(utterance['utterance'])
+                            text = utterance['utterance']
 
                             # 발화자(participantID) 정보
                             participant_id = utterance['participantID']
@@ -43,17 +36,20 @@ class DialogueDataset(Dataset):
                             if age_str in age_map:
                                 age = age_map[age_str]
 
+                            # 데이터 및 레이블 추가
+                            self.data.append(text)
                             self.labels.append((gender, age))
+                            self.label_counts[(gender, age)] += 1
 
-    def __len__(self, split='train'):
-        if split == 'train':
-            return len(self.train_data)
-        else:
-            return len(self.val_data)
+    def _print_label_counts(self):
+        for label, count in self.label_counts.items():
+            gender_label = "Male" if label[0] == 0 else "Female"
+            age_label = f"{label[1]*10 + 20}s"
+            print(f"Gender: {gender_label}, Age: {age_label} => {count} Counts")
 
-    def __getitem__(self, idx, split='train'):
-        if split == 'train':
-            utterance, (gender, age) = self.train_data[idx]  # train_data에서 튜플 반환
-        else:
-            utterance, (gender, age) = self.val_data[idx]  # val_data에서 튜플 반환
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        utterance, (gender, age) = self.data[idx], self.labels[idx]
         return utterance, (gender, age)

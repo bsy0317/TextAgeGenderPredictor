@@ -22,9 +22,11 @@ def main():
     validation_data_path = './data/Validation'
 
     # 데이터셋 로드 및 DataLoader 설정
+    print("="*10+"Loading Train Dataset"+"="*10)
     train_dataset = DialogueDataset(train_data_path)
     train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, collate_fn=custom_collate_fn)
 
+    print("="*10+"Loading Validation Dataset"+"="*10)
     validation_dataset = DialogueDataset(validation_data_path)
     validation_loader = DataLoader(validation_dataset, batch_size=128, shuffle=False, collate_fn=custom_collate_fn)
 

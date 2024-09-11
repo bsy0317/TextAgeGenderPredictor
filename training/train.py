@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
-from transformers import BertTokenizer
+from transformers import AutoTokenizer
 from models.gender_age_model import GenderAgeModel
 from preprocessing.data_loader import DialogueDataset
 from tqdm import tqdm 
@@ -24,7 +24,7 @@ def train_model(model, train_loader, tokenizer, criterion, optimizer, device, ep
             #print(f"Batch size - Inputs: {len(inputs)}, Gender Labels: {len(gender_labels)}, Age Labels: {len(age_labels)}")
 
             # Tokenize the inputs
-            inputs = tokenizer(inputs, return_tensors='pt', padding=True, truncation=True, max_length=128).to(device)
+            inputs = tokenizer(inputs, return_tensors='pt', padding=True, truncation=True, max_length=32).to(device)
             
             gender_labels = gender_labels.to(device)
             age_labels = age_labels.to(device)
