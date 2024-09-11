@@ -21,7 +21,7 @@ def train_model(model, train_loader, tokenizer, criterion, optimizer, device, ep
             gender_labels, age_labels = labels
 
             # Tokenize the inputs
-            inputs = tokenizer(inputs, return_tensors='pt', padding=True, truncation=True, max_length=32).to(device)
+            inputs = tokenizer(inputs, return_tensors='pt', padding=True, truncation=True, max_length=128).to(device)
             
             gender_labels = gender_labels.to(device)
             age_labels = age_labels.to(device)
@@ -51,8 +51,6 @@ def train_model(model, train_loader, tokenizer, criterion, optimizer, device, ep
             writer.add_scalar('Loss/train', loss.item(), epoch * len(progress_bar) + batch_idx)
             writer.add_scalar('Accuracy/Age_train', acc_age, epoch * len(progress_bar) + batch_idx)
             writer.add_scalar('Accuracy/Gender_train', acc_gender, epoch * len(progress_bar) + batch_idx)
-            writer.flush()
-        
-            
+            writer.flush() 
         save_checkpoint(model, optimizer, epoch + 1)
         print(f'Epoch {epoch + 1}/{epochs}, Loss: {running_loss / len(progress_bar)}, Age Acc : {acc_age}, Gender Acc : {acc_gender}')

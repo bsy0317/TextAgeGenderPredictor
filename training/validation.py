@@ -12,7 +12,7 @@ def validate_model(model, validation_loader, tokenizer, criterion, device):
     with torch.no_grad():
         for batch in progress_bar:
             inputs, labels = batch
-            inputs = tokenizer(inputs, return_tensors='pt', padding=True, truncation=True, max_length=32).to(device)
+            inputs = tokenizer(inputs, return_tensors='pt', padding=True, truncation=True, max_length=128).to(device)
             age_labels = torch.tensor([label[1] for label in labels]).to(device)
             gender_labels = torch.tensor([label[0] for label in labels]).to(device)
 
