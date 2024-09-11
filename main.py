@@ -10,9 +10,13 @@ from utils.collate import custom_collate_fn
 from utils.checkpoint import save_checkpoint, load_checkpoint
 
 def main():
-    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device = torch.device("cpu")
-
+    device_name = "cpu"
+    if torch.cuda.is_available():
+        device_name = "cuda"
+    elif torch.backends.mps.is_available():
+        device_name = "mps"
+    device = torch.device(device_name)
+    
     # 데이터 경로 설정
     train_data_path = './data/Training'
     validation_data_path = './data/Validation'
@@ -56,7 +60,7 @@ def main():
     loaded_model.eval()
     
     # 모델 추론
-    input_text = "안녕하세요"
+    input_text = "안녕하세요~~"
     inputs = tokenizer(input_text, return_tensors='pt', padding=True, truncation=True, max_length=128).to(device)
     age_logits = loaded_model(inputs['input_ids'], inputs['attention_mask'])[0]
     gender_logits = loaded_model(inputs['input_ids'], inputs['attention_mask'])[1]

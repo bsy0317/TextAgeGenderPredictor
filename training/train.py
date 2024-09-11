@@ -40,11 +40,11 @@ def train_model(model, train_loader, tokenizer, criterion, optimizer, device, ep
             loss.backward()
             optimizer.step()
             
-            acc_age = (age_logits.argmax(1) == age_labels).float().mean()
-            acc_gender = (gender_logits.argmax(1) == gender_labels).float().mean()
+            acc_age = (age_logits.argmax(1) == age_labels).float().mean().item()
+            acc_gender = (gender_logits.argmax(1) == gender_labels).float().mean().item()
 
             running_loss += loss.item()
             progress_bar.set_postfix(loss=running_loss / len(progress_bar), acc1=acc_age, acc2=acc_gender)
             
         save_checkpoint(model, optimizer, epoch + 1)
-        print(f'Epoch {epoch + 1}/{epochs}, Loss: {running_loss / len(progress_bar)}, Age Acc : {acc_age}, Gender Accuracy : {acc_gender}')
+        print(f'Epoch {epoch + 1}/{epochs}, Loss: {running_loss / len(progress_bar)}, Age Acc : {acc_age}, Gender Acc : {acc_gender}')
