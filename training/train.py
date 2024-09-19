@@ -14,7 +14,6 @@ def train_model(model, train_loader, tokenizer, criterion, optimizer, device, ep
         running_loss = 0.0
         total_acc_age = 0.0
         total_acc_gender = 0.0
-        optimizer.zero_grad()
         
         progress_bar = tqdm(train_loader, desc=f"Epoch {epoch + 1}/{epochs}", leave=False)
         for batch_idx, (inputs, labels) in enumerate(progress_bar):
@@ -27,17 +26,20 @@ def train_model(model, train_loader, tokenizer, criterion, optimizer, device, ep
             age_labels = age_labels.to(device)
 
             # forward
+            optimizer.zero_grad()
             age_logits, gender_logits = model(inputs['input_ids'], inputs['attention_mask'])
             
             # 손실 계산
             age_loss = criterion(age_logits, age_labels) / accumulation_steps
             gender_loss = criterion(gender_logits, gender_labels) / accumulation_steps
             loss = age_loss + gender_loss
-            loss.backward()
             
-            if (batch_idx + 1) % accumulation_steps == 0:
-                optimizer.step()
-                optimizer.zero_grad()
+            # loss.backward()
+            # if (batch_idx + 1) % accumulation_steps == 0:
+            #     optimizer.step()
+            #     optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
             
             acc_age = (age_logits.argmax(1) == age_labels).float().mean().item()
             acc_gender = (gender_logits.argmax(1) == gender_labels).float().mean().item()

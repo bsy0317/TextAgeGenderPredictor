@@ -48,7 +48,7 @@ def main():
         sampler=sampler, 
         collate_fn=custom_collate_fn,
         num_workers=8,
-        pin_memory=True
+        #pin_memory=True
     )
 
     print("="*10+"Loading Validation Dataset"+"="*10)
@@ -58,7 +58,7 @@ def main():
         batch_size=128, 
         shuffle=False, 
         num_workers=8,
-        pin_memory=True,
+        #pin_memory=True,
         collate_fn=custom_collate_fn
     )
 

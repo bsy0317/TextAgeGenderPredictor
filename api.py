@@ -15,7 +15,7 @@ device = torch.device(device_name)
 tokenizer = AutoTokenizer.from_pretrained('beomi/KcELECTRA-base')
 
 model = GenderAgeModel().to(device)
-checkpoint_path = "./model/checkpoint.pth"
+checkpoint_path = "./checkpoint.pth"
 optimizer = torch.optim.Adam(model.parameters()) 
 start_epoch = load_checkpoint(model, optimizer, checkpoint_path)
 model.eval()
